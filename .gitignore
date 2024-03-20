@@ -1,0 +1,13 @@
+build/
+
+drg
+
+pvss-setup
+
+*.conf
+
+*.dat
+
+.vscode/
+
+temp/
