@@ -10,11 +10,11 @@ bool DrgBase::conn_handler(const salticidae::ConnPool::conn_t &conn, bool connec
 
 DrgBase::~DrgBase() {}
 
-void DrgBase::start(std::vector<std::tuple<salticidae::NetAddr, uint256_t>> &&replicas)
+void DrgBase::start(std::vector<salticidae::NetAddr> &replicas)
 {
     for (size_t i = 0; i < replicas.size(); i++)
     {
-        auto &addr = std::get<0>(replicas[i]);
+        auto &addr = replicas[i];
         DrgCore::add_replica(i, addr);
         if (addr != listen_addr)
         {

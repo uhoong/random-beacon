@@ -103,7 +103,7 @@ class DrgCore
     std::unordered_map<ReplicaID,pvss_crypto::pvss_sharing_t> shares_map;
 
 public:
-    DrgCore(pvss_crypto::Context &pvss_ctx) : pvss_context(pvss_ctx)
+    DrgCore(ReplicaID rid,const pvss_crypto::Context &pvss_ctx) : pvss_context(pvss_ctx)
     {
         round = 0;
 
