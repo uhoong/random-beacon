@@ -8,8 +8,7 @@ if __name__ == "__main__":
     parser.add_argument('--prefix', type=str, default='drg')
     parser.add_argument('--ips', type=str, default=None)
     parser.add_argument('--iter', type=int, default=5)
-    parser.add_argument('--pport', type=int, default=10000)
-    parser.add_argument('--cport', type=int, default=20000)
+    parser.add_argument('--pport', type=int, default=20000)
     # parser.add_argument('--keygen', type=str, default='./hotstuff-keygen')
     parser.add_argument('--pvss-setup', type=str, default='./pvss-setup')
     # parser.add_argument('--tls-keygen', type=str, default='./hotstuff-tls-keygen')
@@ -26,14 +25,13 @@ if __name__ == "__main__":
     prefix = args.prefix
     iter = args.iter
     base_pport = args.pport
-    base_cport = args.cport
     # keygen_bin = args.keygen
     # tls_keygen_bin = args.tls_keygen
     pvss_setup_bin = args.pvss_setup
 
     main_conf = open("{}.conf".format(prefix), 'w')
     # nodes = open(args.nodes, 'w')
-    replicas = ["{}:{};{}".format(ip, base_pport + i, base_cport + i)
+    replicas = ["{}:{}".format(ip, base_pport + i)
                 for ip in ips
                 for i in range(iter)]
     # p = subprocess.Popen([keygen_bin, '--num', str(len(replicas))],

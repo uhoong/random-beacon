@@ -25,6 +25,17 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas)
 
     on_init();
 
-    // if (ec_loop)
     ec.dispatch();
+}
+
+void DrgBase::stop(){
+
+}
+
+void DrgBase::share_handler(MsgShare &&msg, const Net::conn_t &conn){
+    const salticidae::NetAddr &peer = conn->get_peer_addr();
+    if (peer.is_null()) return;
+    msg.parse();
+    auto &share = msg.share;
+    on_receive_share(share);
 }

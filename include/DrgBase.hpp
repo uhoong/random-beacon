@@ -33,8 +33,8 @@ protected:
     /** network stack */
     Net pn;
 
-    inline void share_handler(MsgShare &&, const Net::conn_t &);
-    inline bool conn_handler(const salticidae::ConnPool::conn_t &, bool);
+    void share_handler(MsgShare &&, const Net::conn_t &);
+    bool conn_handler(const salticidae::ConnPool::conn_t &, bool);
 
     // M是源消息，T是打包后的消息
     template <typename T, typename M>
@@ -43,9 +43,9 @@ protected:
         pn.multicast_msg(M(t), peers);
     }
 
-    // void do_broadcast_proposal(const Proposal &prop) override {
-    //     _do_broadcast<Proposal, MsgPropose>(prop);
-    // }
+    void do_share(const Share &share, ReplicaID dest) override {
+        pn.send_msg(MsgShare(share), get_config().get_addr(dest));
+    }
 
 public:
     DrgBase(ReplicaID rid,
@@ -69,19 +69,6 @@ public:
     ~DrgBase();
 
     void start(std::vector<salticidae::NetAddr> &replicas);
-};
 
-void DrgBase::start(std::vector<salticidae::NetAddr> &replicas) {
-    for (size_t i = 0; i < replicas.size(); i++)
-    {
-        auto &addr = replicas[i];
-        DrgCore::add_replica(i, addr);
-        if (addr != listen_addr)
-        {
-            peers.push_back(addr);
-            pn.add_peer(addr);
-        }
-    }
-    on_init();
-    ec.dispatch();
-}
+    void stop();
+};

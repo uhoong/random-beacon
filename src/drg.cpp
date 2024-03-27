@@ -4,14 +4,6 @@
 #include <salticidae/util.h>
 #include <salticidae/event.h>
 
-std::pair<std::string, std::string> split_ip_port_cport(const std::string &s)
-{
-    auto ret = salticidae::trim_all(salticidae::split(s, ";"));
-    if (ret.size() != 2)
-        throw std::invalid_argument("invalid cport format");
-    return std::make_pair(ret[0], ret[1]);
-}
-
 int main(int argc, char **argv)
 {
     // 读取配置信息
@@ -41,11 +33,9 @@ int main(int argc, char **argv)
     std::vector<std::string> replicas;
     for (const auto &s : opt_replicas->get())
     {
-        auto res = salticidae::trim_all(salticidae::split(s, ","));
-        replicas.push_back(res[0]);
+        replicas.push_back(s);
     }
-    std::string binding_addr = replicas[idx];
-    salticidae::NetAddr plisten_addr{split_ip_port_cport(binding_addr).first};
+    salticidae::NetAddr plisten_addr{replicas[idx]};
 
     DrgBase::Net::Config repnet_config;
     repnet_config
@@ -59,7 +49,6 @@ int main(int argc, char **argv)
     ctx_stream.open(opt_pvss_ctx->get());
     if (ctx_stream.fail())
         throw std::runtime_error("PVSS Context File Error!");
-
     auto pvss_ctx = factory.parseContext(ctx_stream);
     ctx_stream.close();
 
@@ -69,10 +58,15 @@ int main(int argc, char **argv)
     std::vector<salticidae::NetAddr> reps;
     for (auto &r : replicas)
     {
-        auto p = split_ip_port_cport(r);
-        reps.push_back(salticidae::NetAddr(p.first));
+        reps.push_back(salticidae::NetAddr(r));
     }
 
     papp->start(reps);
+
+    auto shutdown = [&](int) { papp->stop(); };
+    salticidae::SigEvent ev_sigint(ec, shutdown);
+    salticidae::SigEvent ev_sigterm(ec, shutdown);
+    ev_sigint.add(SIGINT);
+    ev_sigterm.add(SIGTERM);
     return 0;
 }

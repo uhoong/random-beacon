@@ -12,7 +12,7 @@ include_directories("include")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
 
-add_executable(drg src/DrgBase.cpp src/DrgCore.cpp src/erasure.cpp src/set_up.cpp)
+add_executable(drg src/DrgBase.cpp src/DrgCore.cpp src/erasure.cpp src/drg.cpp)
 
 target_link_libraries(drg
     sodium
