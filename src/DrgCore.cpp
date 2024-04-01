@@ -1,6 +1,6 @@
 #include "DrgCore.hpp"
 
-DrgCore::DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx) : pvss_context(pvss_ctx)
+DrgCore::DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx) :id(int(rid)), pvss_context(pvss_ctx)
 {
     round = 0;
 
@@ -73,66 +73,68 @@ void DrgCore::deliver_share()
         path->serialise(patharr);
         if (i != id)
         {
-            Share share(id,(uint32_t)i,0,hash,patharr,chunk_array[i]);
+            Share share(id, (uint32_t)i, 0, hash, patharr, chunk_array[i]);
             do_share(share, (ReplicaID)i);
         }
     }
 }
 
+void DrgCore::on_receive_start(){
+    vrf();
+}
+
 void DrgCore::on_receive_share(const Share &share)
 {
+    uint32_t _round = share.round;
+
+    size_t qsize = shares_matrix[share.replicaID].size();
+    if (qsize > config.nreconthres)
+        return;
+
+    if (shares_matrix[share.replicaID].find(share.idx) == shares_matrix[share.replicaID].end())
     {
-        uint32_t _round = share.round;
+        bytearray_t bt(share.merkle_root);
+        merkle::Hash root(bt);
+        merkle::Path path(share.merkle_proof);
 
-        size_t qsize = shares_matrix[share.replicaID].size();
-        if (qsize > config.nreconthres)
-            return;
-
-        if (shares_matrix[share.replicaID].find(share.idx) == shares_matrix[share.replicaID].end())
+        if (path.verify(root))
         {
-            bytearray_t bt(share.merkle_root);
-            merkle::Hash root(bt);
-            merkle::Path path(share.merkle_proof);
-
-            if (path.verify(root))
-            {
-                shares_matrix[share.replicaID][share.idx] = share.chunk;
-                qsize++;
-            }
+            shares_matrix[share.replicaID][share.idx] = share.chunk;
+            qsize++;
         }
+    }
 
-        unsigned long chunksize = share.chunk->get_data().size();
+    unsigned long chunksize = share.chunk->get_data().size();
 
-        if (qsize == config.nreconthres)
+    if (qsize == config.nreconthres)
+    {
+        chunkarray_t arr;
+        intarray_t erasures;
+        for (int i = 0; i < (int)config.nreconthres; i++)
         {
-            chunkarray_t arr;
-            intarray_t erasures;
-            for (int i = 0; i < (int)config.nreconthres; i++)
-            {
-                arr.push_back(shares_matrix[_round][i]);
-            }
-            for (int i = (int)config.nreconthres; i < (int)config.nreplicas; i++)
-            {
-                arr.push_back(new Chunk(share.chunk->get_size(), bytearray_t(chunksize)));
-                erasures.push_back(i);
-            }
-            erasures.push_back(-1);
-            salticidae::DataStream d;
-            Erasure::decode((int)config.nreconthres, (int)(config.nreplicas - config.nreconthres), 8, arr, erasures, d);
-
-            uint32_t n;
-            d >> n;
-            n = salticidae::letoh(n);
-            auto base = d.get_data_inplace(n);
-            bytearray_t extra = bytearray_t(base, base + n);
-            std::string str1(extra.begin(), extra.end());
-            std::stringstream ss1;
-            ss1.str(str1);
-
-            pvss_crypto::pvss_sharing_t sharing;
-            ss1 >> sharing;
-            shares_map[share.replicaID] = sharing;
+            arr.push_back(shares_matrix[_round][i]);
         }
+        for (int i = (int)config.nreconthres; i < (int)config.nreplicas; i++)
+        {
+            arr.push_back(new Chunk(share.chunk->get_size(), bytearray_t(chunksize)));
+            erasures.push_back(i);
+        }
+        erasures.push_back(-1);
+        salticidae::DataStream d;
+        Erasure::decode((int)config.nreconthres, (int)(config.nreplicas - config.nreconthres), 8, arr, erasures, d);
+
+        uint32_t n;
+        d >> n;
+        n = salticidae::letoh(n);
+        auto base = d.get_data_inplace(n);
+        bytearray_t extra = bytearray_t(base, base + n);
+        std::string str1(extra.begin(), extra.end());
+        std::stringstream ss1;
+        ss1.str(str1);
+
+        pvss_crypto::pvss_sharing_t sharing;
+        ss1 >> sharing;
+        shares_map[share.replicaID] = sharing;
     }
 }
 

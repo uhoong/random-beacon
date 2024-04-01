@@ -60,7 +60,6 @@ int main(int argc, char **argv)
     {
         reps.push_back(salticidae::NetAddr(r));
     }
-
     papp->start(reps);
 
     auto shutdown = [&](int) { papp->stop(); };

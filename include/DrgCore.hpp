@@ -10,6 +10,16 @@
 #include <salticidae/stream.h>
 #include "ReplicaConfig.hpp"
 
+struct Start : public salticidae::Serializable
+{
+    Start(){};
+    void serialize(salticidae::DataStream &s) const override
+    {
+    }
+    void unserialize(salticidae::DataStream &s) override
+    {
+    }
+};
 
 /** Abstraction for proposal messages. */
 struct Share : public salticidae::Serializable
@@ -68,8 +78,6 @@ struct Share : public salticidae::Serializable
     }
 };
 
-
-
 static bool unsigned_char_compare(std::unique_ptr<unsigned char[]> &a, std::unique_ptr<unsigned char[]> &b, int len)
 {
     for (int i = 0; i < len; i++)
@@ -100,10 +108,10 @@ class DrgCore
     ReplicaConfig config;
 
     std::unordered_map<ReplicaID, unordered_map<uint32_t, chunk_t>> shares_matrix;
-    std::unordered_map<ReplicaID,pvss_crypto::pvss_sharing_t> shares_map;
+    std::unordered_map<ReplicaID, pvss_crypto::pvss_sharing_t> shares_map;
 
 public:
-    DrgCore(ReplicaID rid,const pvss_crypto::Context &pvss_ctx);
+    DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx);
 
     virtual ~DrgCore()
     {
@@ -117,11 +125,11 @@ public:
      * before running HotStuffCore protocol. */
     void add_replica(ReplicaID rid, const salticidae::NetAddr &addr);
     const ReplicaConfig &get_config() { return config; }
-    
+
     void deliver_share();
 
     void on_receive_share(const Share &share);
-
+    void on_receive_start();
 
     virtual void do_share(const Share &share, ReplicaID dest) = 0;
 
@@ -129,5 +137,4 @@ private:
     void vrf_hash(std::unique_ptr<unsigned char[]> &hash);
 
     void vrf();
-    
 };

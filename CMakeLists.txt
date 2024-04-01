@@ -38,3 +38,16 @@ target_link_libraries(pvss-setup
     ssl
     crypto
 )
+
+add_executable(client src/client.cpp)
+target_link_libraries(client 
+    sodium
+    ff
+    gmp
+    gmpxx
+    salticidae
+    Jerasure
+    uv
+    ssl
+    crypto
+)

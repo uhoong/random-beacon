@@ -1,7 +1,7 @@
 build/
 
 drg
-
+client
 pvss-setup
 
 *.conf
