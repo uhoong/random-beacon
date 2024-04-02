@@ -22,7 +22,7 @@ struct Start : public salticidae::Serializable
 };
 
 /** Abstraction for proposal messages. */
-struct Share : public salticidae::Serializable
+struct ShareChunk : public salticidae::Serializable
 {
     ReplicaID replicaID;
     uint32_t idx;
@@ -31,8 +31,8 @@ struct Share : public salticidae::Serializable
     uint256_t merkle_root;
     bytearray_t merkle_proof;
 
-    Share() : chunk(nullptr) {}
-    Share(ReplicaID replicaID,
+    ShareChunk() : chunk(nullptr) {}
+    ShareChunk(ReplicaID replicaID,
           uint32_t idx,
           uint32_t round,
           uint256_t merkle_root,
@@ -126,12 +126,12 @@ public:
     void add_replica(ReplicaID rid, const salticidae::NetAddr &addr);
     const ReplicaConfig &get_config() { return config; }
 
-    void deliver_share();
+    void deliver_chunk();
 
-    void on_receive_share(const Share &share);
+    void on_receive_shareChunk(const ShareChunk &share);
     void on_receive_start();
 
-    virtual void do_share(const Share &share, ReplicaID dest) = 0;
+    virtual void do_share(const ShareChunk &share, ReplicaID dest) = 0;
 
 private:
     void vrf_hash(std::unique_ptr<unsigned char[]> &hash);

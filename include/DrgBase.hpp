@@ -16,13 +16,13 @@ struct MsgStart
     void parse();
 };
 
-struct MsgShare
+struct MsgShareChunk
 {
     static const opcode_t opcode = 0x1;
     salticidae::DataStream serialized;
-    Share share;
-    MsgShare(const Share &);
-    MsgShare(salticidae::DataStream &&s) : serialized(std::move(s)) {}
+    ShareChunk share;
+    MsgShareChunk(const ShareChunk &);
+    MsgShareChunk(salticidae::DataStream &&s) : serialized(std::move(s)) {}
     void parse();
 };
 
@@ -41,9 +41,9 @@ protected:
     /** network stack */
     Net pn;
 
-    void do_share(const Share &share, ReplicaID dest) override;
+    void do_share(const ShareChunk &share, ReplicaID dest) override;
 
-    void share_handler(MsgShare &&, const Net::conn_t &);
+    void sharechunk_handler(MsgShareChunk &&, const Net::conn_t &);
     void start_handler(MsgStart &&, const Net::conn_t &);
     bool conn_handler(const salticidae::ConnPool::conn_t &, bool);
 

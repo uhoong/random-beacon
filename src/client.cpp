@@ -14,7 +14,7 @@ bool Client::conn_handler(const salticidae::ConnPool::conn_t &conn, bool connect
 void Client::start()
 {
     pn.start();
-    pn.listen(salticidae::NetAddr("127.0.0.1:40000"));
+    pn.listen(salticidae::NetAddr("127.0.0.1:20001"));
 }
 
 void Client::send_start(int peer_id)
@@ -47,6 +47,8 @@ int main()
     Client c(ec);
     c.start();
     c.add_peer("127.0.0.1:20000");
-    c.send_start(0);
+    c.pn.set_peer_addr(salticidae::NetAddr("127.0.0.1:20000"),salticidae::NetAddr("127.0.0.1:20000"));
     c.pn.conn_peer(salticidae::NetAddr("127.0.0.1:20000"));
+    c.send_start(0);
+    ec.dispatch();
 }

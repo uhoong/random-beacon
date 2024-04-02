@@ -1,6 +1,6 @@
 #include "DrgCore.hpp"
 
-DrgCore::DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx) :id(int(rid)), pvss_context(pvss_ctx)
+DrgCore::DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx) : id(int(rid)), pvss_context(pvss_ctx)
 {
     round = 0;
 
@@ -35,11 +35,11 @@ void DrgCore::vrf()
     vrf_hash(hash);
     if (unsigned_char_compare(hash, difficulty, crypto_vrf_outputbytes()))
     {
-        deliver_share();
+        deliver_chunk();
     }
 }
 
-void DrgCore::deliver_share()
+void DrgCore::deliver_chunk()
 {
     pvss_crypto::pvss_sharing_t sharing = pvss_context.create_sharing();
 
@@ -73,38 +73,48 @@ void DrgCore::deliver_share()
         path->serialise(patharr);
         if (i != id)
         {
-            Share share(id, (uint32_t)i, 0, hash, patharr, chunk_array[i]);
-            do_share(share, (ReplicaID)i);
+            ShareChunk shareChunk(id, (uint32_t)i, 0, hash, patharr, chunk_array[i]);
+            do_share(shareChunk, (ReplicaID)i);
         }
     }
 }
 
-void DrgCore::on_receive_start(){
+void DrgCore::on_receive_start()
+{
     vrf();
 }
 
-void DrgCore::on_receive_share(const Share &share)
+void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 {
-    uint32_t _round = share.round;
+    uint32_t _round = shareChunk.round;
 
-    size_t qsize = shares_matrix[share.replicaID].size();
+    size_t qsize = shares_matrix[shareChunk.replicaID].size();
     if (qsize > config.nreconthres)
         return;
 
-    if (shares_matrix[share.replicaID].find(share.idx) == shares_matrix[share.replicaID].end())
+    if (shares_matrix[shareChunk.replicaID].find(shareChunk.idx) == shares_matrix[shareChunk.replicaID].end())
     {
-        bytearray_t bt(share.merkle_root);
+        bytearray_t bt(shareChunk.merkle_root);
         merkle::Hash root(bt);
-        merkle::Path path(share.merkle_proof);
+        merkle::Path path(shareChunk.merkle_proof);
 
         if (path.verify(root))
         {
-            shares_matrix[share.replicaID][share.idx] = share.chunk;
+            shares_matrix[shareChunk.replicaID][shareChunk.idx] = shareChunk.chunk;
             qsize++;
+        }
+
+        // 第一次收到收到share chunk后向其他人发送share chunk
+        for (int i = 0; i < config.nreplicas; i++)
+        {
+            if (i != id)
+            {
+                do_share(shareChunk, (ReplicaID)i);
+            }
         }
     }
 
-    unsigned long chunksize = share.chunk->get_data().size();
+    unsigned long chunksize = shareChunk.chunk->get_data().size();
 
     if (qsize == config.nreconthres)
     {
@@ -116,7 +126,7 @@ void DrgCore::on_receive_share(const Share &share)
         }
         for (int i = (int)config.nreconthres; i < (int)config.nreplicas; i++)
         {
-            arr.push_back(new Chunk(share.chunk->get_size(), bytearray_t(chunksize)));
+            arr.push_back(new Chunk(shareChunk.chunk->get_size(), bytearray_t(chunksize)));
             erasures.push_back(i);
         }
         erasures.push_back(-1);
@@ -134,7 +144,7 @@ void DrgCore::on_receive_share(const Share &share)
 
         pvss_crypto::pvss_sharing_t sharing;
         ss1 >> sharing;
-        shares_map[share.replicaID] = sharing;
+        shares_map[shareChunk.replicaID] = sharing;
     }
 }
 
