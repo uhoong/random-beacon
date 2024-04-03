@@ -11,7 +11,7 @@ struct MsgStart
 {
     static const opcode_t opcode = 0x0;
     salticidae::DataStream serialized;
-    MsgStart(){}
+    MsgStart() {}
     MsgStart(salticidae::DataStream &&s) {}
     void parse();
 };
@@ -23,6 +23,16 @@ struct MsgShareChunk
     ShareChunk share;
     MsgShareChunk(const ShareChunk &);
     MsgShareChunk(salticidae::DataStream &&s) : serialized(std::move(s)) {}
+    void parse();
+};
+
+struct MsgShare
+{
+    static const opcode_t opcode = 0x2;
+    salticidae::DataStream serialized;
+    Share share;
+    MsgShare(const Share &);
+    MsgShare(salticidae::DataStream &&s) : serialized(std::move(s)) {}
     void parse();
 };
 
@@ -41,17 +51,34 @@ protected:
     /** network stack */
     Net pn;
 
-    void do_share(const ShareChunk &share, ReplicaID dest) override;
+    void do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest) override;
+    void do_share(const Share &share, ReplicaID dest) override;
 
     void sharechunk_handler(MsgShareChunk &&, const Net::conn_t &);
     void start_handler(MsgStart &&, const Net::conn_t &);
     bool conn_handler(const salticidae::ConnPool::conn_t &, bool);
 
-    // M是源消息，T是打包后的消息
-    template <typename T, typename M>
-    void _do_broadcast(const T &t)
+    // // T是源消息，M是打包后的消息
+    // template <typename T, typename M>
+    // void _do_broadcast(const T &t)
+    // {
+    //     pn.multicast_msg(M(t), peers);
+    // }
+
+    void do_broadcast_share(const Share &share) override
     {
-        pn.multicast_msg(M(t), peers);
+        for (auto &i : peers)
+        {
+            pn.send_msg(MsgShare(share), i);
+        }
+    }
+
+    void do_broadcast_sharechunk(const ShareChunk &sharechunk) override
+    {
+        for (auto &i : peers)
+        {
+            pn.send_msg(MsgShareChunk(sharechunk), i);
+        }
     }
 
 public:
@@ -65,7 +92,7 @@ public:
 
     ~DrgBase();
 
-    void start(std::vector<salticidae::NetAddr> &replicas);
+    void start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client);
 
     void stop();
 };

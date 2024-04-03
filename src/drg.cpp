@@ -9,6 +9,7 @@ int main(int argc, char **argv)
     // 读取配置信息
     salticidae::Config config("drg.conf");
     auto opt_replicas = salticidae::Config::OptValStrVec::create();
+    auto opt_client = salticidae::Config::OptValStr::create("127.0.0.1:30000");
     auto opt_idx = salticidae::Config::OptValInt::create(0);
     auto opt_pvss_ctx = salticidae::Config::OptValStr::create();
     auto opt_nworker = salticidae::Config::OptValInt::create(1);
@@ -20,14 +21,16 @@ int main(int argc, char **argv)
     config.add_opt("replica", opt_replicas, salticidae::Config::APPEND, 'a', "add an replica to the list");
     config.add_opt("idx", opt_idx, salticidae::Config::SET_VAL, 'i', "specify the index in the replica list");
     config.add_opt("pvss-ctx", opt_pvss_ctx, salticidae::Config::SET_VAL, 'z', "PVSS ctx");
+    config.add_opt("client", opt_client, salticidae::Config::SET_VAL, 'c', "client");
     config.add_opt("nworker", opt_nworker, salticidae::Config::SET_VAL, 'n', "the number of threads for verification");
     config.add_opt("repnworker", opt_repnworker, salticidae::Config::SET_VAL, 'm', "the number of threads for replica network");
     config.add_opt("repburst", opt_repburst, salticidae::Config::SET_VAL, 'b', "");
     config.add_opt("help", opt_help, salticidae::Config::SWITCH_ON, 'h', "show this help info");
     // config.add_opt("pvss-dat", opt_pvss_dat, salticidae::Config::SET_VAL, 'D', "PVSS dat");
 
-    salticidae::EventContext ec;
     config.parse(argc, argv);
+
+    auto client = opt_client->get();
 
     auto idx = opt_idx->get();
     std::vector<std::string> replicas;
@@ -54,15 +57,17 @@ int main(int argc, char **argv)
 
     salticidae::BoxObj<DrgBase> papp = nullptr;
 
+    salticidae::EventContext ec;
     papp = new DrgBase(idx, plisten_addr, pvss_ctx, ec, opt_nworker->get(), repnet_config);
     std::vector<salticidae::NetAddr> reps;
     for (auto &r : replicas)
     {
         reps.push_back(salticidae::NetAddr(r));
     }
-    papp->start(reps);
+    papp->start(reps, salticidae::NetAddr(client));
 
-    auto shutdown = [&](int) { papp->stop(); };
+    auto shutdown = [&](int)
+    { papp->stop(); };
     salticidae::SigEvent ev_sigint(ec, shutdown);
     salticidae::SigEvent ev_sigterm(ec, shutdown);
     ev_sigint.add(SIGINT);

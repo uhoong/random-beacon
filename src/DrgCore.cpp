@@ -74,7 +74,7 @@ void DrgCore::deliver_chunk()
         if (i != id)
         {
             ShareChunk shareChunk(id, (uint32_t)i, 0, hash, patharr, chunk_array[i]);
-            do_share(shareChunk, (ReplicaID)i);
+            do_sharechunk(shareChunk, (ReplicaID)i);
         }
     }
 }
@@ -88,11 +88,11 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 {
     uint32_t _round = shareChunk.round;
 
-    size_t qsize = shares_matrix[shareChunk.replicaID].size();
+    size_t qsize = sharechunk_matrix[shareChunk.replicaID].size();
     if (qsize > config.nreconthres)
         return;
 
-    if (shares_matrix[shareChunk.replicaID].find(shareChunk.idx) == shares_matrix[shareChunk.replicaID].end())
+    if (sharechunk_matrix[shareChunk.replicaID].find(shareChunk.idx) == sharechunk_matrix[shareChunk.replicaID].end())
     {
         bytearray_t bt(shareChunk.merkle_root);
         merkle::Hash root(bt);
@@ -100,18 +100,12 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 
         if (path.verify(root))
         {
-            shares_matrix[shareChunk.replicaID][shareChunk.idx] = shareChunk.chunk;
+            sharechunk_matrix[shareChunk.replicaID][shareChunk.idx] = shareChunk.chunk;
             qsize++;
         }
 
         // 第一次收到收到share chunk后向其他人发送share chunk
-        for (int i = 0; i < config.nreplicas; i++)
-        {
-            if (i != id)
-            {
-                do_share(shareChunk, (ReplicaID)i);
-            }
-        }
+        do_broadcast_sharechunk(shareChunk);
     }
 
     unsigned long chunksize = shareChunk.chunk->get_data().size();
@@ -122,7 +116,7 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
         intarray_t erasures;
         for (int i = 0; i < (int)config.nreconthres; i++)
         {
-            arr.push_back(shares_matrix[_round][i]);
+            arr.push_back(sharechunk_matrix[_round][i]);
         }
         for (int i = (int)config.nreconthres; i < (int)config.nreplicas; i++)
         {
@@ -144,7 +138,92 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 
         pvss_crypto::pvss_sharing_t sharing;
         ss1 >> sharing;
-        shares_map[shareChunk.replicaID] = sharing;
+        sharing_map[shareChunk.replicaID] = sharing;
+
+        // 检查前 nreconthres 个节点的 sharing 是否都已收到
+        for (int i = 0; i < (int)config.nreconthres; i++)
+        {
+            if (sharing_map.find((ReplicaID)i) == sharing_map.end())
+            {
+                return;
+            }
+        }
+        // 如果收到，进行聚合，解密并传播
+        vector<pvss_crypto::pvss_sharing_t> sharing_vec;
+        vector<size_t> id_vec;
+        for (int i = 0; i < (int)config.nreconthres; i++)
+        {
+            sharing_vec.push_back(sharing_map[(ReplicaID)i]);
+            id_vec.push_back((size_t)i);
+        }
+        auto agg = pvss_context.aggregate(sharing_vec, id_vec);
+        auto decryption = pvss_context.decrypt(agg);
+        std::stringstream ss;
+        ss.str(std::string{});
+        ss << decryption;
+
+        auto str = ss.str();
+        bytearray_t dec_bytes(str.begin(), str.end());
+        Share share(id, std::move(dec_bytes));
+
+        on_receive_share(share);
+        do_broadcast_share(share);
+    }
+}
+
+void DrgCore::on_receive_share(const Share &share)
+{
+    // LOG_PROTO("got %s", std::string(share).c_str());
+    // LOG_PROTO("now state: %s", std::string(*this).c_str());
+
+    size_t qsize = dec_share_vec.size();
+
+    if (qsize >= config.nreconthres)
+        return;
+
+    std::string str(share.bt.begin(), share.bt.end());
+    std::stringstream ss;
+    ss.str(str);
+
+    pvss_crypto::decryption_t dec_share;
+
+    ss >> dec_share;
+
+    // ReplicaID proposer = get_proposer(share.view);
+
+    // if (!pvss_context.verify_decryption(agg_queue[proposer], dec_share))
+    // {
+    //     throw std::runtime_error("Decryption Verification failed in View");
+    // }
+    dec_share_vec.push_back(dec_share);
+    // view_shares[share.view].push_back(dec_share);
+
+    if (qsize + 1 == config.nreconthres)
+    {
+        // Todo: reconstruct the secret and broadcast it.
+        auto beacon = pvss_context.reconstruct(dec_share_vec);
+
+        // if (!pvss_context.verify_beacon(agg_queue[proposer], beacon))
+        // {
+        //     throw std::runtime_error("Beacon Verification failed.");
+        //     return;
+        // }
+
+        std::stringstream ss2;
+        ss2.str(std::string{});
+        ss2 << beacon;
+
+        auto str = ss2.str();
+        
+        bytearray_t beacon_bytes(str.begin(), str.end());
+
+        // Beacon beacon1(id, view, std::move(beacon_bytes), this);
+        // do_broadcast_beacon(beacon1);
+        // // Not a warning; just using LOG_WARN to print beacon output.
+        // LOG_WARN("beacon view %d", view);
+        // last_view_shares_received = view;
+        // last_view_beacon_received = view;
+        // _try_enter_view();
     }
 }
 

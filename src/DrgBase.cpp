@@ -7,6 +7,13 @@ const opcode_t MsgShareChunk::opcode;
 MsgShareChunk::MsgShareChunk(const ShareChunk &share) { serialized << share; }
 void MsgShareChunk::parse() { serialized >> share; }
 
+const opcode_t MsgShare::opcode;
+MsgShare::MsgShare(const Share &share) { serialized << share; }
+void MsgShare::parse()
+{
+    serialized >> share;
+}
+
 DrgBase::DrgBase(ReplicaID rid,
                  // privkey_bt &&priv_key,
                  salticidae::NetAddr listen_addr,
@@ -33,7 +40,7 @@ void DrgBase::stop()
 {
 }
 
-void DrgBase::start(std::vector<salticidae::NetAddr> &replicas)
+void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client)
 {
     for (size_t i = 0; i < replicas.size(); i++)
     {
@@ -43,18 +50,26 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas)
         {
             peers.push_back(addr);
             pn.add_peer(addr);
-            pn.set_peer_addr(addr,addr);
+            pn.set_peer_addr(addr, addr);
         }
     }
+
+    pn.add_peer(client);
+    pn.set_peer_addr(client, client);
 
     on_init();
 
     ec.dispatch();
 }
 
-void DrgBase::do_share(const ShareChunk &share, ReplicaID dest)
+void DrgBase::do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest)
 {
-    pn.send_msg(MsgShareChunk(share), get_config().get_addr(dest));
+    pn.send_msg(MsgShareChunk(sharechunk), get_config().get_addr(dest));
+}
+
+void DrgBase::do_share(const Share &share, ReplicaID dest)
+{
+    pn.send_msg(MsgShare(share), get_config().get_addr(dest));
 }
 
 bool DrgBase::conn_handler(const salticidae::ConnPool::conn_t &conn, bool connected)

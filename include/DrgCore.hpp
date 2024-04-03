@@ -21,6 +21,51 @@ struct Start : public salticidae::Serializable
     }
 };
 
+struct Share : public salticidae::Serializable
+{
+    ReplicaID replicaId;
+    /** proof of validity for the share */
+    // Decryption;
+    bytearray_t bt;
+
+    //    Share(): cert(nullptr), hsc(nullptr) {}
+    Share() {}
+    Share(ReplicaID replicaId, bytearray_t &&bt) : replicaId(replicaId), bt(std::move(bt))
+    {
+    }
+
+    Share(const Share &other) : replicaId(other.replicaId), bt(std::move(other.bt))
+    {
+    }
+
+    Share(Share &&other) = default;
+
+    void serialize(salticidae::DataStream &s) const override
+    {
+        s << replicaId;
+        s << salticidae::htole((uint32_t)bt.size()) << bt;
+    }
+
+    void unserialize(salticidae::DataStream &s) override
+    {
+        uint32_t n;
+        s >> replicaId;
+
+        s >> n;
+        n = salticidae::letoh(n);
+        auto base = s.get_data_inplace(n);
+        bt = bytearray_t(base, base + n);
+    }
+
+    operator std::string() const
+    {
+        salticidae::DataStream s;
+        s << "<share "
+          << "rid=" << std::to_string(replicaId);
+        return std::move(s);
+    }
+};
+
 /** Abstraction for proposal messages. */
 struct ShareChunk : public salticidae::Serializable
 {
@@ -33,11 +78,11 @@ struct ShareChunk : public salticidae::Serializable
 
     ShareChunk() : chunk(nullptr) {}
     ShareChunk(ReplicaID replicaID,
-          uint32_t idx,
-          uint32_t round,
-          uint256_t merkle_root,
-          bytearray_t merkle_proof,
-          const chunk_t &chunk)
+               uint32_t idx,
+               uint32_t round,
+               uint256_t merkle_root,
+               bytearray_t merkle_proof,
+               const chunk_t &chunk)
         : replicaID(replicaID),
           round(round),
           idx(idx),
@@ -92,7 +137,7 @@ static bool unsigned_char_compare(std::unique_ptr<unsigned char[]> &a, std::uniq
 
 class DrgCore
 {
-    int id;
+    ReplicaID id;
 
     std::unique_ptr<unsigned char[]> random;
     unsigned long long random_len;
@@ -107,8 +152,9 @@ class DrgCore
 
     ReplicaConfig config;
 
-    std::unordered_map<ReplicaID, unordered_map<uint32_t, chunk_t>> shares_matrix;
-    std::unordered_map<ReplicaID, pvss_crypto::pvss_sharing_t> shares_map;
+    std::unordered_map<ReplicaID, unordered_map<uint32_t, chunk_t>> sharechunk_matrix;
+    std::unordered_map<ReplicaID, pvss_crypto::pvss_sharing_t> sharing_map;
+    std::vector<pvss_crypto::decryption_t> dec_share_vec;
 
 public:
     DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx);
@@ -128,10 +174,14 @@ public:
 
     void deliver_chunk();
 
-    void on_receive_shareChunk(const ShareChunk &share);
+    void on_receive_shareChunk(const ShareChunk &sharechunk);
+    void on_receive_share(const Share &share);
     void on_receive_start();
 
-    virtual void do_share(const ShareChunk &share, ReplicaID dest) = 0;
+    virtual void do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest) = 0;
+    virtual void do_broadcast_sharechunk(const ShareChunk &sharechunk) = 0;
+    virtual void do_share(const Share &share, ReplicaID dest) = 0;
+    virtual void do_broadcast_share(const Share &share) = 0;
 
 private:
     void vrf_hash(std::unique_ptr<unsigned char[]> &hash);

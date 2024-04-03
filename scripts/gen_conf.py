@@ -57,4 +57,4 @@ if __name__ == "__main__":
         # r_conf.write("idx = {}\n".format(r[1]))
         # r_conf.write("pvss-ctx = pvss-sec{}.conf\n".format(r[1]))
         # r_conf.write("pvss-dat = pvss-setup.dat\n".format(r[1]))
-
+    main_conf.write("client = 127.0.0.1:30000\n")
