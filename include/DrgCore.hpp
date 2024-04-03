@@ -137,7 +137,6 @@ static bool unsigned_char_compare(std::unique_ptr<unsigned char[]> &a, std::uniq
 
 class DrgCore
 {
-    ReplicaID id;
 
     std::unique_ptr<unsigned char[]> random;
     unsigned long long random_len;
@@ -157,6 +156,8 @@ class DrgCore
     std::vector<pvss_crypto::decryption_t> dec_share_vec;
 
 public:
+    ReplicaID id;
+
     DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx);
 
     virtual ~DrgCore()

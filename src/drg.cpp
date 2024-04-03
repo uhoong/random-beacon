@@ -44,7 +44,6 @@ int main(int argc, char **argv)
     repnet_config
         .burst_size(opt_repburst->get())
         .nworker(opt_repnworker->get());
-
     pvss_crypto::initialize();
     auto conf = pvss_crypto::SyncSystemConfig::FromNumReplicas(replicas.size());
     auto factory = pvss_crypto::Factory(std::move(conf));
@@ -64,13 +63,14 @@ int main(int argc, char **argv)
     {
         reps.push_back(salticidae::NetAddr(r));
     }
-    papp->start(reps, salticidae::NetAddr(client));
 
-    auto shutdown = [&](int)
-    { papp->stop(); };
+    auto shutdown = [&](int){ papp->stop(); };
     salticidae::SigEvent ev_sigint(ec, shutdown);
     salticidae::SigEvent ev_sigterm(ec, shutdown);
     ev_sigint.add(SIGINT);
     ev_sigterm.add(SIGTERM);
+    
+    papp->start(reps, salticidae::NetAddr(client));
+    
     return 0;
 }

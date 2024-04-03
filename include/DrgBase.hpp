@@ -46,7 +46,7 @@ protected:
     salticidae::NetAddr listen_addr;
     /** libevent handle */
     salticidae::EventContext ec;
-    salticidae::ThreadCall tcall;
+    // salticidae::ThreadCall tcall;
     std::vector<salticidae::NetAddr> peers;
     /** network stack */
     Net pn;
