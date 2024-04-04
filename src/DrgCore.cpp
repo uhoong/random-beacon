@@ -214,7 +214,7 @@ void DrgCore::on_receive_share(const Share &share)
         auto str = ss2.str();
 
         bytearray_t beacon_bytes(str.begin(), str.end());
-        SALTICIDAE_LOG_INFO("beacon: %s",str.c_str());
+        SALTICIDAE_LOG_INFO("beacon: %d",beacon_bytes.size());
 
         // Beacon beacon1(id, view, std::move(beacon_bytes), this);
         // do_broadcast_beacon(beacon1);

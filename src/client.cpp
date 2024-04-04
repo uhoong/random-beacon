@@ -22,11 +22,13 @@ void Client::start(const std::vector<std::string> &replicas)
 {
     for (size_t i = 0; i < replicas.size(); i++)
     {
+        
         auto addr = salticidae::NetAddr(replicas[i]);
         peers.push_back(addr);
         pn.add_peer(addr);
         pn.set_peer_addr(addr, addr);
         pn.conn_peer(addr);
+        SALTICIDAE_LOG_INFO("addr %d",i);
     }
 }
 
