@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     salticidae::NetAddr plisten_addr{replicas[idx]};
 
     DrgBase::Net::Config repnet_config;
-    repnet_config.max_msg_size(65536).nworker(1);
+    repnet_config.max_msg_size(65536).max_msg_queue_size(6553665).nworker(1);
     pvss_crypto::initialize();
     auto conf = pvss_crypto::SyncSystemConfig::FromNumReplicas(replicas.size());
     // auto conf = pvss_crypto::SyncSystemConfig::FromNumReplicas(replicas.size());
