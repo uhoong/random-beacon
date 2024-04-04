@@ -30,6 +30,7 @@ DrgBase::DrgBase(ReplicaID rid,
     pn.reg_conn_handler(salticidae::generic_bind(&DrgBase::conn_handler, this, _1, _2));
     pn.reg_handler(salticidae::generic_bind(&DrgBase::sharechunk_handler, this, _1, _2));
     pn.reg_handler(salticidae::generic_bind(&DrgBase::start_handler, this, _1, _2));
+    pn.reg_handler(salticidae::generic_bind(&DrgBase::share_handler, this, _1, _2));
     pn.start();
     pn.listen(listen_addr);
 }
@@ -73,7 +74,7 @@ void DrgBase::do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest)
 
 void DrgBase::do_share(const Share &share, ReplicaID dest)
 {
-    SALTICIDAE_LOG_INFO("send share");
+    SALTICIDAE_LOG_INFO("%d: send share to %d, sharechunk info %d",int(id),int(dest),int(share.replicaId));
     pn.send_msg(MsgShare(share), get_config().get_addr(dest));
 }
 
@@ -100,4 +101,15 @@ void DrgBase::sharechunk_handler(MsgShareChunk &&msg, const Net::conn_t &conn)
     auto &share = msg.share;
     SALTICIDAE_LOG_INFO("%d receive sharechunk from %s, sharechunk info from %d to %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaID),int(share.idx));
     on_receive_shareChunk(share);
+}
+
+void DrgBase::share_handler(MsgShare &&msg, const Net::conn_t &conn)
+{
+    const salticidae::NetAddr &peer = conn->get_peer_addr();
+    if (peer.is_null())
+        return;
+    msg.parse();
+    auto &share = msg.share;
+    SALTICIDAE_LOG_INFO("%d receive share from %s, share info %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaId));
+    on_receive_share(share);
 }

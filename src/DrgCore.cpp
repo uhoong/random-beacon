@@ -115,18 +115,16 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
        
         chunkarray_t arr;
         intarray_t erasures;
-        for (int i = 0; i < (int)config.nreconthres; i++)
-        {
-            arr.push_back(sharechunk_matrix[_round][i]);
-        }
-        for (int i = (int)config.nreconthres; i < (int)config.nreplicas; i++)
-        {
-            arr.push_back(new Chunk(shareChunk.chunk->get_size(), bytearray_t(chunksize)));
-            erasures.push_back(i);
+        for(int i=0; i < (int) config.nreplicas; i++){
+            if (sharechunk_matrix[shareChunk.replicaID][i]){
+                arr.push_back(sharechunk_matrix[shareChunk.replicaID][i]);
+            }else{
+                arr.push_back(new Chunk(shareChunk.chunk->get_size(), bytearray_t(chunksize)));
+                erasures.push_back(i);
+            }
         }
         erasures.push_back(-1);
         salticidae::DataStream d;
-        SALTICIDAE_LOG_INFO("decoode : %d %d",(int)config.nreconthres,(int)(config.nreplicas - config.nreconthres));
         Erasure::decode((int)config.nreconthres, (int)(config.nreplicas - config.nreconthres), 8, arr, erasures, d);
         uint32_t n;
         d >> n;
@@ -140,7 +138,6 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
         pvss_crypto::pvss_sharing_t sharing;
         ss1 >> sharing;
         sharing_map[shareChunk.replicaID] = sharing;
-        SALTICIDAE_LOG_INFO("%d: %d sharing is received",id,int(shareChunk.replicaID));
 
         // 检查前 nreconthres 个节点的 sharing 是否都已收到
         for (int i = 0; i < (int)config.nreconthres; i++)
@@ -237,5 +234,5 @@ void DrgCore::add_replica(ReplicaID rid, const salticidae::NetAddr &addr)
 /*** end DrgCore protocol logic ***/
 void DrgCore::on_init()
 {
-    config.nreconthres = (size_t)floor(config.nreplicas / 4.0) + 1;
+    config.nreconthres = (size_t)floor(config.nreplicas / 2.0) + 1;
 }

@@ -56,6 +56,7 @@ protected:
 
     void sharechunk_handler(MsgShareChunk &&, const Net::conn_t &);
     void start_handler(MsgStart &&, const Net::conn_t &);
+    void share_handler(MsgShare &&, const Net::conn_t &);
     bool conn_handler(const salticidae::ConnPool::conn_t &, bool);
 
     // // T是源消息，M是打包后的消息
