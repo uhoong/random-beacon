@@ -89,10 +89,13 @@ void DrgCore::on_receive_start()
 
 void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 {
-    uint32_t _round = shareChunk.round;
-
     size_t qsize = sharechunk_matrix[shareChunk.replicaID].size();
-    if (qsize > config.nreconthres)
+    if (sharechunk_bool_matrix[shareChunk.replicaID].find(shareChunk.idx) == sharechunk_bool_matrix[shareChunk.replicaID].end()){
+        // 第一次收到收到share chunk后向其他人发送share chunk
+        sharechunk_bool_matrix[shareChunk.replicaID][shareChunk.idx] = true;
+        do_broadcast_sharechunk(shareChunk);
+    }
+    if (qsize >= config.nreconthres)
         return;
     if (sharechunk_matrix[shareChunk.replicaID].find(shareChunk.idx) == sharechunk_matrix[shareChunk.replicaID].end())
     {
@@ -106,8 +109,7 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
             qsize++;
         }
 
-        // 第一次收到收到share chunk后向其他人发送share chunk
-        do_broadcast_sharechunk(shareChunk);
+        
     }
     unsigned long chunksize = shareChunk.chunk->get_data().size();
     if (qsize == config.nreconthres)
@@ -176,7 +178,7 @@ void DrgCore::on_receive_share(const Share &share)
     // LOG_PROTO("now state: %s", std::string(*this).c_str());
     size_t qsize = dec_share_vec.size();
 
-    if (qsize >= config.nreconthres)
+    if (qsize > pvss_context.config.num_faults())
         return;
 
     std::string str(share.bt.begin(), share.bt.end());
@@ -196,7 +198,7 @@ void DrgCore::on_receive_share(const Share &share)
     dec_share_vec.push_back(dec_share);
     // view_shares[share.view].push_back(dec_share);
 
-    if (qsize + 1 == config.nreconthres)
+    if (qsize + 1 > pvss_context.config.num_faults())
     {
         // Todo: reconstruct the secret and broadcast it.
         auto beacon = pvss_context.reconstruct(dec_share_vec);

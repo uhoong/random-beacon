@@ -8,7 +8,7 @@ if __name__ == "__main__":
     parser.add_argument('--prefix', type=str, default='drg')
     parser.add_argument('--ips', type=str, default=None)
     parser.add_argument('--iter', type=int, default=5)
-    parser.add_argument('--pport', type=int, default=20000)
+    parser.add_argument('--pport', type=int, default=30000)
     # parser.add_argument('--keygen', type=str, default='./hotstuff-keygen')
     parser.add_argument('--pvss-setup', type=str, default='./pvss-setup')
     # parser.add_argument('--tls-keygen', type=str, default='./hotstuff-tls-keygen')

@@ -152,6 +152,7 @@ class DrgCore
     ReplicaConfig config;
 
     std::unordered_map<ReplicaID, unordered_map<uint32_t, chunk_t>> sharechunk_matrix;
+    std::unordered_map<ReplicaID, unordered_map<uint32_t, bool>> sharechunk_bool_matrix;
     std::unordered_map<ReplicaID, pvss_crypto::pvss_sharing_t> sharing_map;
     std::vector<pvss_crypto::decryption_t> dec_share_vec;
 

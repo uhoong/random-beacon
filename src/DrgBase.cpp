@@ -57,10 +57,13 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae
         }
     }
 
-    pn.add_peer(client);
-    pn.set_peer_addr(client, client);
+    // pn.add_peer(client);
+    // pn.set_peer_addr(client, client);
+    // pn.conn_peer(client);
 
     on_init();
+
+    on_receive_start();
 
     ec.dispatch();
 }

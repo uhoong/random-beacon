@@ -41,9 +41,10 @@ int main(int argc, char **argv)
     salticidae::NetAddr plisten_addr{replicas[idx]};
 
     DrgBase::Net::Config repnet_config;
-    repnet_config.max_msg_size(65536);
+    repnet_config.max_msg_size(65536).nworker(1);
     pvss_crypto::initialize();
     auto conf = pvss_crypto::SyncSystemConfig::FromNumReplicas(replicas.size());
+    // auto conf = pvss_crypto::SyncSystemConfig::FromNumReplicas(replicas.size());
     auto factory = pvss_crypto::Factory(std::move(conf));
     std::ifstream ctx_stream;
     ctx_stream.open(opt_pvss_ctx->get());

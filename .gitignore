@@ -11,3 +11,5 @@ pvss-setup
 .vscode/
 
 temp/
+
+log*
