@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     auto setup = factory.getContext();
 
     for (int i = 0; i < n; i++) {
-        std::string filename = "pvss-sec" + std::to_string(i) + ".conf";
+        std::string filename = "./pvssconf/pvss-sec" + std::to_string(i) + ".conf";
         ofstream fp;
         fp.open(filename);
         fp << setup.at(i);
