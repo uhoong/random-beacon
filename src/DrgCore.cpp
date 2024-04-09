@@ -4,39 +4,39 @@ DrgCore::DrgCore(ReplicaID rid, const pvss_crypto::Context &pvss_ctx) : id(int(r
 {
     round = 0;
 
-    random_len = 32;
-    random = std::make_unique<unsigned char[]>(random_len);
-    randombytes(random.get(), random_len);
+    // random_len = 32;
+    // random = std::make_unique<unsigned char[]>(random_len);
+    // randombytes(random.get(), random_len);
 
-    difficulty = std::make_unique<unsigned char[]>(crypto_vrf_outputbytes());
-    difficulty[0] = 128;
-    for (int i = 1; i < crypto_vrf_outputbytes(); i++)
-    {
-        difficulty[i] = 0;
-    }
+    // difficulty = std::make_unique<unsigned char[]>(crypto_vrf_outputbytes());
+    // difficulty[0] = 128;
+    // for (int i = 1; i < crypto_vrf_outputbytes(); i++)
+    // {
+    //     difficulty[i] = 0;
+    // }
 
-    vrfpk = std::make_unique<unsigned char[]>(crypto_vrf_publickeybytes());
-    vrfsk = std::make_unique<unsigned char[]>(crypto_vrf_secretkeybytes());
+    // vrfpk = std::make_unique<unsigned char[]>(crypto_vrf_publickeybytes());
+    // vrfsk = std::make_unique<unsigned char[]>(crypto_vrf_secretkeybytes());
 }
 
 void DrgCore::vrf_hash(std::unique_ptr<unsigned char[]> &hash)
 {
-    crypto_vrf_keypair(vrfpk.get(), vrfsk.get());
+    // crypto_vrf_keypair(vrfpk.get(), vrfsk.get());
 
-    auto proof = std::make_unique<unsigned char[]>(crypto_vrf_proofbytes());
-    crypto_vrf_prove(proof.get(), vrfsk.get(), random.get(), random_len);
+    // auto proof = std::make_unique<unsigned char[]>(crypto_vrf_proofbytes());
+    // crypto_vrf_prove(proof.get(), vrfsk.get(), random.get(), random_len);
 
-    crypto_vrf_proof_to_hash(hash.get(), proof.get());
+    // crypto_vrf_proof_to_hash(hash.get(), proof.get());
 }
 
 void DrgCore::vrf()
 {
-    auto hash = std::make_unique<unsigned char[]>(crypto_vrf_outputbytes());
-    vrf_hash(hash);
-    if (unsigned_char_compare(hash, difficulty, crypto_vrf_outputbytes()))
-    {
-        deliver_chunk();
-    }
+    // auto hash = std::make_unique<unsigned char[]>(crypto_vrf_outputbytes());
+    // vrf_hash(hash);
+    // if (unsigned_char_compare(hash, difficulty, crypto_vrf_outputbytes()))
+    // {
+    //     deliver_chunk();
+    // }
 }
 
 void DrgCore::deliver_chunk()
