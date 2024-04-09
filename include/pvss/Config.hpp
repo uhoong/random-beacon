@@ -30,7 +30,8 @@ public:
 
     // returns a default structure for (n,(n-1)/2) system
     static SyncSystemConfig FromNumReplicas(size_t num_replicas) {
-        return SyncSystemConfig{num_replicas, (num_replicas-1)/2};
+        // return SyncSystemConfig{num_replicas, (num_replicas-1)/2};
+        return SyncSystemConfig{num_replicas, (num_replicas)/3};
     }
 
     // Given the value for f, return a (2f+1,f) config

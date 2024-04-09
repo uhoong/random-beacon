@@ -13,3 +13,73 @@ scp -r -P 2223 /c/39local/random-beacon/pvssconf root@123.157.213.104:/root/rand
 scp -P 2223 /c/39local/random-beacon/client root@123.157.213.104:/root/random-beacon
 scp -P 2223 /c/39local/random-beacon/drg root@123.157.213.104:/root/random-beacon
 scp -P 2223 /c/39local/random-beacon/drg.conf root@123.157.213.104:/root/random-beacon
+
+# 环境配置
+vim /etc/resolv.conf
+    nameserver 8.8.8.8
+
+cp /etc/apt/sources.list /etc/apt/sources.list.bak
+vim /etc/apt/sources.list
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+    deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    deb-src http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
+    deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-proposed main restricted universe multiverse
+    deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-proposed main restricted universe multiverse
+
+apt update
+apt install proxychains
+    配置文件 /etc/proxychains.conf
+    注释 dns
+    端口改为 7891
+
+# libsodium
+git clone https://github.com/algorand/libsodium.git
+sh ./autogen
+./configure
+make
+make install
+
+# libff
+git clone https://github.com/scipr-lab/libff.git
+apt install build-essential git libboost-all-dev cmake libgmp3-dev libssl-dev libprocps-dev pkg-config libsodium-dev
+git submodule init && git submodule update
+mkdir build && cd build
+cmake ..
+make
+make install
+
+# libuv
+git clone https://github.com/libuv/libuv.git
+sh autogen.sh
+./configure
+make
+make install
+
+# salticidae
+git clone https://github.com/Determinant/salticidae.git
+cmake .
+make
+make install
+
+# GF-complete
+git clone https://github.com/ceph/gf-complete.git
+sh autogen.sh
+./configure
+make
+make install
+
+# Jerasure
+git clone https://github.com/ceph/jerasure.git
+autoreconf --force --install
+./configure
+make
+make install
+
+cd /usr/local/include
+sudo vim jerasure.h
+"jerasure/gal"

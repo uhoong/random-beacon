@@ -41,6 +41,7 @@ void DrgCore::vrf()
 
 void DrgCore::deliver_chunk()
 {
+    SALTICIDAE_LOG_INFO("start");
     pvss_crypto::pvss_sharing_t sharing = pvss_context.create_sharing();
 
     std::stringstream ss;
@@ -74,9 +75,11 @@ void DrgCore::deliver_chunk()
         if (i != id)
         {
             ShareChunk shareChunk(id, (uint32_t)i, 0, hash, patharr, chunk_array[i]);
+            sharechunk_matrix[shareChunk.replicaID][shareChunk.idx] = shareChunk.chunk;
             do_sharechunk(shareChunk, (ReplicaID)i);
         }
     }
+    sharing_map[id] = sharing;
 }
 
 void DrgCore::on_receive_start()
@@ -90,7 +93,10 @@ void DrgCore::on_receive_start()
 void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
 {
     uint32_t _round = shareChunk.round;
-
+    if (sharechunk_matrix[shareChunk.replicaID].find(shareChunk.idx) == sharechunk_matrix[shareChunk.replicaID].end())
+    {
+        do_broadcast_sharechunk(shareChunk);
+    }
     size_t qsize = sharechunk_matrix[shareChunk.replicaID].size();
     if (qsize > config.nreconthres)
         return;
@@ -105,9 +111,6 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
             sharechunk_matrix[shareChunk.replicaID][shareChunk.idx] = shareChunk.chunk;
             qsize++;
         }
-
-        // 第一次收到收到share chunk后向其他人发送share chunk
-        do_broadcast_sharechunk(shareChunk);
     }
     unsigned long chunksize = shareChunk.chunk->get_data().size();
     if (qsize == config.nreconthres)
@@ -140,7 +143,7 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
         sharing_map[shareChunk.replicaID] = sharing;
 
         // 检查前 nreconthres 个节点的 sharing 是否都已收到
-        for (int i = 0; i < (int)config.nreconthres; i++)
+        for (int i = 0; i < (int)config.k; i++)
         {
             if (sharing_map.find((ReplicaID)i) == sharing_map.end())
             {
@@ -150,7 +153,7 @@ void DrgCore::on_receive_shareChunk(const ShareChunk &shareChunk)
         // 如果收到，进行聚合，解密并传播
         vector<pvss_crypto::pvss_sharing_t> sharing_vec;
         vector<size_t> id_vec;
-        for (int i = 0; i < (int)config.nreconthres; i++)
+        for (int i = 0; i < (int)config.k; i++)
         {
             sharing_vec.push_back(sharing_map[(ReplicaID)i]);
             id_vec.push_back((size_t)i);
@@ -199,6 +202,7 @@ void DrgCore::on_receive_share(const Share &share)
     if (qsize + 1 == config.nreconthres)
     {
         // Todo: reconstruct the secret and broadcast it.
+        SALTICIDAE_LOG_INFO("reconstruct");
         auto beacon = pvss_context.reconstruct(dec_share_vec);
 
         // if (!pvss_context.verify_beacon(agg_queue[proposer], beacon))
@@ -234,5 +238,6 @@ void DrgCore::add_replica(ReplicaID rid, const salticidae::NetAddr &addr)
 /*** end DrgCore protocol logic ***/
 void DrgCore::on_init()
 {
-    config.nreconthres = (size_t)floor(config.nreplicas / 2.0) + 1;
+    config.nreconthres = (size_t)floor(config.nreplicas / 3.0) + 1;
+    config.k = 5;
 }
