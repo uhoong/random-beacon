@@ -39,47 +39,59 @@ apt install proxychains
 
 # libsodium
 git clone https://github.com/algorand/libsodium.git
-sh ./autogen
+sh ./autogen.sh
 ./configure
 make
-make install
+sudo make install
 
 # libff
 git clone https://github.com/scipr-lab/libff.git
+cd libff
 apt install build-essential git libboost-all-dev cmake libgmp3-dev libssl-dev libprocps-dev pkg-config libsodium-dev
 git submodule init && git submodule update
 mkdir build && cd build
 cmake ..
 make
-make install
+sudo make install
 
 # libuv
 git clone https://github.com/libuv/libuv.git
+cd libuv
 sh autogen.sh
 ./configure
 make
-make install
+sudo make install
 
 # salticidae
 git clone https://github.com/Determinant/salticidae.git
+cd salticidae
 cmake .
 make
-make install
+sudo make install
 
 # GF-complete
 git clone https://github.com/ceph/gf-complete.git
+cd gf-complete
 sh autogen.sh
 ./configure
 make
-make install
+sudo make install
 
 # Jerasure
 git clone https://github.com/ceph/jerasure.git
 autoreconf --force --install
 ./configure
 make
-make install
+sudo make install
 
 cd /usr/local/include
 sudo vim jerasure.h
 "jerasure/gal"
+
+
+git clone https://github.com/uhoong/random-beacon.git
+cd random-beacon
+git pull origin feat-scale
+
+mkdir pvssconf
+mkdir log

@@ -21,11 +21,12 @@ class ReplicaConfig
 public:
     size_t nreplicas;
     size_t nreconthres;
+    size_t probility;
     size_t k;
 
     std::unordered_map<ReplicaID, ReplicaInfo> replica_map;
 
-    ReplicaConfig(size_t _nreplicas = 0, size_t _nreconthres = 0,size_t k = 0) : nreplicas(_nreplicas), nreconthres(0),k(0) {}
+    ReplicaConfig(size_t _nreplicas = 0, size_t _nreconthres = 0,size_t _probility=100,size_t _k=0) : nreplicas(_nreplicas), nreconthres(_nreconthres),probility(_probility),k(_k) {}
 
     void add_replica(ReplicaID rid, const ReplicaInfo &info)
     {

@@ -3,6 +3,7 @@
 #include "DrgCore.hpp"
 #include <salticidae/network.h>
 #include <salticidae/netaddr.h>
+#include <random>
 
 using salticidae::_1;
 using salticidae::_2;
@@ -38,6 +39,9 @@ struct MsgShare
 
 class DrgBase : public DrgCore
 {
+    std::mt19937 rng;                                // Mersenne Twister随机数引擎
+    std::uniform_int_distribution<int> distribution; // 均匀分布
+
 public:
     using Net = salticidae::PeerNetwork<opcode_t>;
 
@@ -74,12 +78,46 @@ protected:
         }
     }
 
+    void do_broadcast_share_random(const Share &share) override
+    {
+        int p = get_config().probility;
+        for (auto &i : peers)
+        {
+            if (distribution(rng) < p)
+            {
+                pn.send_msg(MsgShare(share), i);
+            }
+        }
+    }
+
+    void do_broadcast_share_evil(const Share &share) override
+    {
+        return;
+    }
+
     void do_broadcast_sharechunk(const ShareChunk &sharechunk) override
     {
         for (auto &i : peers)
         {
             pn.send_msg(MsgShareChunk(sharechunk), i);
         }
+    }
+
+    void do_broadcast_sharechunk_random(const ShareChunk &sharechunk) override
+    {
+        int p = get_config().probility;
+        for (auto &i : peers)
+        {
+            if (distribution(rng) < p)
+            {
+                pn.send_msg(MsgShareChunk(sharechunk), i);
+            }
+        }
+    }
+
+    void do_broadcast_sharechunk_evil(const ShareChunk &sharechunk) override
+    {
+        return;
     }
 
 public:
@@ -93,7 +131,7 @@ public:
 
     ~DrgBase();
 
-    void start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client);
+    void start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client, std::unordered_set<ReplicaID> &replicas_notSharing, std::unordered_set<ReplicaID> &replicas_notForward);
 
     void stop();
 };

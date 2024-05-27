@@ -9,6 +9,8 @@ int main(int argc, char **argv)
     // 读取配置信息
     salticidae::Config config("drg.conf");
     auto opt_replicas = salticidae::Config::OptValStrVec::create();
+    auto opt_evil_replicas_notSharing = salticidae::Config::OptValStrVec::create();      // 不生成密钥的节点
+    auto opt_evil_replicas_notForward = salticidae::Config::OptValStrVec::create();   // 收到消息不转发的节点
     auto opt_client = salticidae::Config::OptValStr::create("127.0.0.1:30000");
     auto opt_idx = salticidae::Config::OptValInt::create(0);
     auto opt_pvss_ctx = salticidae::Config::OptValStr::create();
@@ -19,6 +21,8 @@ int main(int argc, char **argv)
     // auto opt_pvss_dat = salticidae::Config::OptValStr::create();
 
     config.add_opt("replica", opt_replicas, salticidae::Config::APPEND, 'a', "add an replica to the list");
+    config.add_opt("evil-notSharing", opt_evil_replicas_notSharing, salticidae::Config::APPEND, 's', "add a not sharing evil replica to the list");
+    config.add_opt("evil-notForward", opt_evil_replicas_notForward, salticidae::Config::APPEND, 'f', "add a not forward evil replica to the list");
     config.add_opt("idx", opt_idx, salticidae::Config::SET_VAL, 'i', "specify the index in the replica list");
     config.add_opt("pvss-ctx", opt_pvss_ctx, salticidae::Config::SET_VAL, 'z', "PVSS ctx");
     config.add_opt("client", opt_client, salticidae::Config::SET_VAL, 'c', "client");
@@ -37,6 +41,18 @@ int main(int argc, char **argv)
     for (const auto &s : opt_replicas->get())
     {
         replicas.push_back(s);
+    }
+    // 加入不生成份额的恶意节点
+    std::unordered_set<ReplicaID> replicas_notSharing;
+    for (const auto &s : opt_evil_replicas_notSharing->get())
+    {
+        replicas_notSharing.insert(std::stoi(s));
+    }
+    // 加入收到份额不转发的恶意节点
+    std::unordered_set<ReplicaID> replicas_notForwarding;
+    for (const auto &s : opt_evil_replicas_notForward->get())
+    {
+        replicas_notForwarding.insert(std::stoi(s));
     }
     salticidae::NetAddr plisten_addr{replicas[idx]};
 
@@ -68,7 +84,7 @@ int main(int argc, char **argv)
     ev_sigint.add(SIGINT);
     ev_sigterm.add(SIGTERM);
     
-    papp->start(reps, salticidae::NetAddr(client));
+    papp->start(reps, salticidae::NetAddr(client),replicas_notSharing,replicas_notForwarding);
     
     return 0;
 }

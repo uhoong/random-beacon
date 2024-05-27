@@ -6,6 +6,8 @@ import argparse
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate configuration file for a batch of replicas')
     parser.add_argument('--prefix', type=str, default='drg')
+    parser.add_argument('--evil-notSharing', type=int, default=0)
+    parser.add_argument('--evil-notForward', type=int, default=0)
     parser.add_argument('--ips', type=str, default=None)
     parser.add_argument('--iter', type=int, default=5)
     parser.add_argument('--pport', type=int, default=20000)
@@ -28,6 +30,10 @@ if __name__ == "__main__":
     # keygen_bin = args.keygen
     # tls_keygen_bin = args.tls_keygen
     pvss_setup_bin = args.pvss_setup
+
+    # 恶意节点设置
+    evil_notSharing = args.evil_notSharing
+    evil_notForward = args.evil_notForward
 
     main_conf = open("{}.conf".format(prefix), 'w')
     # nodes = open(args.nodes, 'w')
@@ -57,4 +63,8 @@ if __name__ == "__main__":
         # r_conf.write("idx = {}\n".format(r[1]))
         # r_conf.write("pvss-ctx = pvss-sec{}.conf\n".format(r[1]))
         # r_conf.write("pvss-dat = pvss-setup.dat\n".format(r[1]))
+    for i in range(iter-evil_notSharing,iter):
+        main_conf.write("evil-notSharing = {}\n".format(i))
+    for i in range(iter-evil_notForward,iter):
+        main_conf.write("evil-notForward = {}\n".format(i))
     main_conf.write("client = 127.0.0.1:30000\n")

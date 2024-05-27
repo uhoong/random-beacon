@@ -5,6 +5,7 @@
 #include "merklecpp.h"
 #include "erasure.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <salticidae/ref.h>
 #include <salticidae/netaddr.h>
 #include <salticidae/stream.h>
@@ -155,6 +156,10 @@ class DrgCore
     std::unordered_map<ReplicaID, pvss_crypto::pvss_sharing_t> sharing_map;
     std::vector<pvss_crypto::decryption_t> dec_share_vec;
 
+    // 恶意节点
+    unordered_set<ReplicaID> evilNodes_notForward;     // 该集合内的节点不转发消息
+    unordered_set<ReplicaID> evilNodes_notSharing;  // 该集合内的节点只向一半节点发送转发消息
+
 public:
     ReplicaID id;
 
@@ -166,7 +171,7 @@ public:
 
     /** Call to initialize the protocol, should be called once before all other
      * functions. */
-    void on_init();
+    void on_init(std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward);
 
     /** Add a replica to the current configuration. This should only be called
      * before running HotStuffCore protocol. */
@@ -174,6 +179,7 @@ public:
     const ReplicaConfig &get_config() { return config; }
 
     void deliver_chunk();
+    void deliver_chunk_evil();
 
     void on_receive_shareChunk(const ShareChunk &sharechunk);
     void on_receive_share(const Share &share);
@@ -181,8 +187,12 @@ public:
 
     virtual void do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest) = 0;
     virtual void do_broadcast_sharechunk(const ShareChunk &sharechunk) = 0;
+    virtual void do_broadcast_sharechunk_evil(const ShareChunk &sharechunk) = 0;
+    virtual void do_broadcast_share_random(const Share &share) = 0;
     virtual void do_share(const Share &share, ReplicaID dest) = 0;
     virtual void do_broadcast_share(const Share &share) = 0;
+    virtual void do_broadcast_share_evil(const Share &share) = 0;
+    virtual void do_broadcast_sharechunk_random(const ShareChunk &sharechunk) = 0;
 
 private:
     void vrf_hash(std::unique_ptr<unsigned char[]> &hash);

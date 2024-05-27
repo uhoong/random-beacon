@@ -24,7 +24,8 @@ DrgBase::DrgBase(ReplicaID rid,
                                                  listen_addr(listen_addr),
                                                  ec(ec),
                                                 //  tcall(ec),
-                                                 pn(ec, netconfig)
+                                                 pn(ec, netconfig),
+                                                 rng(std::random_device{}()), distribution(0, 99)
 {
     /* register the handlers for msg from replicas */
     pn.reg_conn_handler(salticidae::generic_bind(&DrgBase::conn_handler, this, _1, _2));
@@ -42,7 +43,7 @@ void DrgBase::stop()
     ec.stop();
 }
 
-void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client)
+void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client,std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward)
 {
     for (size_t i = 0; i < replicas.size(); i++)
     {
@@ -60,7 +61,7 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae
     pn.add_peer(client);
     pn.set_peer_addr(client, client);
 
-    on_init();
+    on_init(replicas_notSharing,replicas_notForward);
 
     ec.dispatch();
 }
