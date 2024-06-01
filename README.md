@@ -39,6 +39,7 @@ apt install proxychains
 
 # libsodium
 git clone https://github.com/algorand/libsodium.git
+cd libsodium
 sh ./autogen.sh
 ./configure
 make
@@ -95,3 +96,15 @@ git pull origin feat-scale
 
 mkdir pvssconf
 mkdir log
+
+# 节点1
+python3 scripts/gen_conf.py --iter 16  --ips ips1.txt
+修改遍历元素为0到15
+sh scripts/gen_conf.py
+
+./client
+
+# 节点1
+python3 scripts/gen_conf.py --iter 16  --ips ips1.txt --clientip 34.227.113.9
+修改遍历元素为16到31
+sh scripts/gen_conf.py
