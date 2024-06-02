@@ -8,7 +8,8 @@ if __name__ == "__main__":
     parser.add_argument('--prefix', type=str, default='drg')
     parser.add_argument('--evil-notSharing', type=int, default=0)
     parser.add_argument('--evil-notForward', type=int, default=0)
-    parser.add_argument('--clientip', type=str, default="127.0.0.1")
+    parser.add_argument('--groupid', type=int, default=0)
+    parser.add_argument('--clientid', type=int, default=0)
     parser.add_argument('--ips', type=str, default=None)
     parser.add_argument('--iter', type=int, default=5)
     parser.add_argument('--pport', type=int, default=20000)
@@ -25,6 +26,7 @@ if __name__ == "__main__":
         ips = ['127.0.0.1']
     else:
         ips = [l.strip() for l in open(args.ips, 'r').readlines()]
+    ips[args.groupid]="127.0.0.1"
     prefix = args.prefix
     iter = args.iter
     base_pport = args.pport
@@ -68,4 +70,4 @@ if __name__ == "__main__":
         main_conf.write("evil-notSharing = {}\n".format(i))
     for i in range(iter-evil_notForward,iter):
         main_conf.write("evil-notForward = {}\n".format(i))
-    main_conf.write("client = {}:30000\n".format(args.clientip))
+    main_conf.write("client = {}:30000\n".format(ips[args.clientid]))

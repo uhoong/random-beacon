@@ -41,7 +41,6 @@ void DrgCore::vrf()
 
 void DrgCore::deliver_chunk_evil()
 {
-    SALTICIDAE_LOG_INFO("start");
     pvss_crypto::pvss_sharing_t sharing = pvss_context.create_sharing();
 
     std::stringstream ss;
@@ -84,7 +83,6 @@ void DrgCore::deliver_chunk_evil()
 
 void DrgCore::deliver_chunk()
 {
-    SALTICIDAE_LOG_INFO("start");
     pvss_crypto::pvss_sharing_t sharing = pvss_context.create_sharing();
 
     std::stringstream ss;
@@ -127,6 +125,7 @@ void DrgCore::deliver_chunk()
 
 void DrgCore::on_receive_start()
 {
+    SALTICIDAE_LOG_INFO("start");
     if (evilNodes_notSharing.find(id) != evilNodes_notSharing.end())
     {
         deliver_chunk_evil();
@@ -301,7 +300,7 @@ void DrgCore::on_init(std::unordered_set<ReplicaID> &replicas_notSharing, std::u
 {
     config.nreconthres = (size_t)floor(config.nreplicas / 3.0) + 1;
     config.k = 5;
-    config.probility = 100;    //概率
+    config.probility = 25;    //概率
     for (auto it = replicas_notSharing.begin(); it != replicas_notSharing.end(); it++)
     {
         evilNodes_notSharing.insert(*it);

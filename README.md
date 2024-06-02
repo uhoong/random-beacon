@@ -80,6 +80,7 @@ sudo make install
 
 # Jerasure
 git clone https://github.com/ceph/jerasure.git
+cd jerasure
 autoreconf --force --install
 ./configure
 make
@@ -93,18 +94,21 @@ sudo vim jerasure.h
 git clone https://github.com/uhoong/random-beacon.git
 cd random-beacon
 git pull origin feat-scale
+mkdir build && cd build
+cmake ..
+make
 
-mkdir pvssconf
-mkdir log
+mkdir pvssconf && mkdir log
 
 # 节点1
-python3 scripts/gen_conf.py --iter 16  --ips ips1.txt
+python3 scripts/gen_conf.py --iter 16  --ips ips.txt --groupid i --clientid 0
+./scripts/run_demo.sh 0 15
 修改遍历元素为0到15
 sh scripts/gen_conf.py
 
 ./client
 
 # 节点1
-python3 scripts/gen_conf.py --iter 16  --ips ips1.txt --clientip 34.227.113.9
+python3 scripts/gen_conf.py --iter 16  --ips ips2.txt --clientip 3.88.30.223
 修改遍历元素为16到31
 sh scripts/gen_conf.py
