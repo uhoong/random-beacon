@@ -69,13 +69,13 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae
 void DrgBase::do_sharechunk(const ShareChunk &sharechunk, ReplicaID dest)
 {
     auto a = MsgShareChunk(sharechunk);
-    // SALTICIDAE_LOG_INFO("%d: send sharechunk to %d, sharechunk info from %d to %d,size: %d",int(id),int(dest),int(sharechunk.replicaID),int(sharechunk.idx),MsgShareChunk(sharechunk).serialized.size());
+    SALTICIDAE_LOG_INFO("%d: send sharechunk to %d, sharechunk info from %d to %d,size: %d",int(id),int(dest),int(sharechunk.replicaID),int(sharechunk.idx),MsgShareChunk(sharechunk).serialized.size());
     pn.send_msg(MsgShareChunk(sharechunk), get_config().get_addr(dest));
 }
 
 void DrgBase::do_share(const Share &share, ReplicaID dest)
 {
-    // SALTICIDAE_LOG_INFO("%d: send share to %d, sharechunk info %d",int(id),int(dest),int(share.replicaId));
+    SALTICIDAE_LOG_INFO("%d: send share to %d, sharechunk info %d",int(id),int(dest),int(share.replicaId));
     pn.send_msg(MsgShare(share), get_config().get_addr(dest));
 }
 
@@ -100,7 +100,7 @@ void DrgBase::sharechunk_handler(MsgShareChunk &&msg, const Net::conn_t &conn)
         return;
     msg.parse();
     auto &share = msg.share;
-    // SALTICIDAE_LOG_INFO("%d receive sharechunk from %s, sharechunk info from %d to %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaID),int(share.idx));
+    SALTICIDAE_LOG_INFO("%d receive sharechunk from %s, sharechunk info from %d to %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaID),int(share.idx));
     on_receive_shareChunk(share);
 }
 
@@ -111,6 +111,6 @@ void DrgBase::share_handler(MsgShare &&msg, const Net::conn_t &conn)
         return;
     msg.parse();
     auto &share = msg.share;
-    // SALTICIDAE_LOG_INFO("%d receive share from %s, share info %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaId));
+    SALTICIDAE_LOG_INFO("%d receive share from %s, share info %d",int(id),string(conn->get_peer_addr()).c_str(),int(share.replicaId));
     on_receive_share(share);
 }
