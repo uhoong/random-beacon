@@ -171,7 +171,7 @@ public:
 
     /** Call to initialize the protocol, should be called once before all other
      * functions. */
-    void on_init(std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward);
+    void on_init(std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward,int probility);
 
     /** Add a replica to the current configuration. This should only be called
      * before running HotStuffCore protocol. */

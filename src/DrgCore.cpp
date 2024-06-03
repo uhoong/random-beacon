@@ -296,11 +296,11 @@ void DrgCore::add_replica(ReplicaID rid, const salticidae::NetAddr &addr)
 }
 
 /*** end DrgCore protocol logic ***/
-void DrgCore::on_init(std::unordered_set<ReplicaID> &replicas_notSharing, std::unordered_set<ReplicaID> &replicas_notForward)
+void DrgCore::on_init(std::unordered_set<ReplicaID> &replicas_notSharing, std::unordered_set<ReplicaID> &replicas_notForward,int probility)
 {
     config.nreconthres = (size_t)floor(config.nreplicas / 3.0) + 1;
     config.k = 5;
-    config.probility = 25;    //概率
+    config.probility = probility;    //概率
     for (auto it = replicas_notSharing.begin(); it != replicas_notSharing.end(); it++)
     {
         evilNodes_notSharing.insert(*it);

@@ -13,6 +13,7 @@ int main(int argc, char **argv)
     auto opt_evil_replicas_notForward = salticidae::Config::OptValStrVec::create();   // 收到消息不转发的节点
     auto opt_client = salticidae::Config::OptValStr::create("127.0.0.1:30000");
     auto opt_idx = salticidae::Config::OptValInt::create(0);
+    auto opt_probility = salticidae::Config::OptValInt::create(100);
     auto opt_pvss_ctx = salticidae::Config::OptValStr::create();
     auto opt_nworker = salticidae::Config::OptValInt::create(1);
     auto opt_repnworker = salticidae::Config::OptValInt::create(1);
@@ -24,6 +25,7 @@ int main(int argc, char **argv)
     config.add_opt("evil-notSharing", opt_evil_replicas_notSharing, salticidae::Config::APPEND, 's', "add a not sharing evil replica to the list");
     config.add_opt("evil-notForward", opt_evil_replicas_notForward, salticidae::Config::APPEND, 'f', "add a not forward evil replica to the list");
     config.add_opt("idx", opt_idx, salticidae::Config::SET_VAL, 'i', "specify the index in the replica list");
+    config.add_opt("probility", opt_probility, salticidae::Config::SET_VAL, 'p', "broadcast probility");
     config.add_opt("pvss-ctx", opt_pvss_ctx, salticidae::Config::SET_VAL, 'z', "PVSS ctx");
     config.add_opt("client", opt_client, salticidae::Config::SET_VAL, 'c', "client");
     config.add_opt("nworker", opt_nworker, salticidae::Config::SET_VAL, 'n', "the number of threads for verification");
@@ -35,6 +37,8 @@ int main(int argc, char **argv)
     config.parse(argc, argv);
 
     auto client = opt_client->get();
+
+    auto probility = opt_probility->get();
 
     auto idx = opt_idx->get();
     std::vector<std::string> replicas;
@@ -84,7 +88,7 @@ int main(int argc, char **argv)
     ev_sigint.add(SIGINT);
     ev_sigterm.add(SIGTERM);
     
-    papp->start(reps, salticidae::NetAddr(client),replicas_notSharing,replicas_notForwarding);
+    papp->start(reps, salticidae::NetAddr(client),replicas_notSharing,replicas_notForwarding,probility);
     
     return 0;
 }

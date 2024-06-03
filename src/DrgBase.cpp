@@ -43,7 +43,7 @@ void DrgBase::stop()
     ec.stop();
 }
 
-void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client,std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward)
+void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client,std::unordered_set<ReplicaID> &replicas_notSharing,std::unordered_set<ReplicaID> &replicas_notForward,int probility)
 {
     for (size_t i = 0; i < replicas.size(); i++)
     {
@@ -61,7 +61,7 @@ void DrgBase::start(std::vector<salticidae::NetAddr> &replicas, const salticidae
     pn.add_peer(client);
     pn.set_peer_addr(client, client);
 
-    on_init(replicas_notSharing,replicas_notForward);
+    on_init(replicas_notSharing,replicas_notForward,probility);
 
     ec.dispatch();
 }

@@ -131,7 +131,7 @@ public:
 
     ~DrgBase();
 
-    void start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client, std::unordered_set<ReplicaID> &replicas_notSharing, std::unordered_set<ReplicaID> &replicas_notForward);
+    void start(std::vector<salticidae::NetAddr> &replicas, const salticidae::NetAddr &client, std::unordered_set<ReplicaID> &replicas_notSharing, std::unordered_set<ReplicaID> &replicas_notForward,int probility);
 
     void stop();
 };
