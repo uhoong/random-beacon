@@ -262,22 +262,22 @@ void DrgCore::on_receive_share(const Share &share)
         {
             // Todo: reconstruct the secret and broadcast it.
             SALTICIDAE_LOG_INFO("reconstruct");
-            auto beacon = pvss_context.reconstruct(dec_share_vec);
+            // auto beacon = pvss_context.reconstruct(dec_share_vec);
 
-            // if (!pvss_context.verify_beacon(agg_queue[proposer], beacon))
-            // {
-            //     throw std::runtime_error("Beacon Verification failed.");
-            //     return;
-            // }
+            // // if (!pvss_context.verify_beacon(agg_queue[proposer], beacon))
+            // // {
+            // //     throw std::runtime_error("Beacon Verification failed.");
+            // //     return;
+            // // }
 
-            std::stringstream ss2;
-            ss2.str(std::string{});
-            ss2 << beacon;
+            // std::stringstream ss2;
+            // ss2.str(std::string{});
+            // ss2 << beacon;
 
-            auto str = ss2.str();
+            // auto str = ss2.str();
 
-            bytearray_t beacon_bytes(str.begin(), str.end());
-            SALTICIDAE_LOG_INFO("beacon: %d", beacon_bytes.size());
+            // bytearray_t beacon_bytes(str.begin(), str.end());
+            // SALTICIDAE_LOG_INFO("beacon: %d", beacon_bytes.size());
 
             // Beacon beacon1(id, view, std::move(beacon_bytes), this);
             // do_broadcast_beacon(beacon1);
