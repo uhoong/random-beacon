@@ -104,18 +104,12 @@ sudo vim /etc/ld.so.conf
 sudo ldconfig
 
 
-git clone https://github.com/uhoong/random-beacon.git && cd random-beacon && git pull origin feat-scale && mkdir build && cd build && cmake .. && make && mkdir pvssconf && mkdir log
-
-34.236.146.38
-3.27.229.230
-57.181.26.145
-13.60.54.113
-35.159.91.8
+git clone https://github.com/uhoong/random-beacon.git && cd random-beacon && git pull origin feat-scale  && mkdir pvssconf && mkdir log && mkdir build && cd build && cmake .. && make
 
 # 节点1
-python3 scripts/gen_conf.py --iter 16  --ips ips.txt --groupid i
+python3 scripts/gen_conf.py --iter 8  --ips ips.txt --groupid i
 ./scripts/run_demo.sh i j
-python3 scripts/read_log.py --number 32 --groupid 0 --ips ips.txt
+python3 scripts/read_log.py --number 32 --ips ips.txt --groupid 0 
 ./scripts/run_demo.sh 0 15
 修改遍历元素为0到15
 sh scripts/gen_conf.py
@@ -126,3 +120,9 @@ sh scripts/gen_conf.py
 python3 scripts/gen_conf.py --iter 16  --ips ips2.txt --clientip 3.88.30.223
 修改遍历元素为16到31
 sh scripts/gen_conf.py
+
+
+54.89.13.231
+3.107.9.72
+54.64.237.159
+13.53.111.77
